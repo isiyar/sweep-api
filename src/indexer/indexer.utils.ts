@@ -17,15 +17,19 @@ export function getChainsAndBalances(
       };
     }
 
-    result.data[item.chain_name].tokens.push({
-      contract_address: item.contract_address,
-      decimals: item.contract_decimals,
-      name: item.contract_display_name,
-      symbol: item.contract_ticker_symbol,
-      balance: Number(item.balance) / 10 ** item.contract_decimals,
-      rate: item.quote,
-      token_logo_url: item.logo_urls.token_logo_url,
-    });
+    const tokenRate: number =
+      Number(item.balance) / 10 ** item.contract_decimals;
+    if (tokenRate > 1) {
+      result.data[item.chain_name].tokens.push({
+        contract_address: item.contract_address,
+        decimals: item.contract_decimals,
+        name: item.contract_display_name,
+        symbol: item.contract_ticker_symbol,
+        balance: tokenRate,
+        rate: item.quote,
+        token_logo_url: item.logo_urls.token_logo_url,
+      });
+    }
   }
 
   return result;
