@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
+import { HttpException, HttpStatus, Injectable, Logger } from "@nestjs/common";
 import { HttpService } from "@nestjs/axios";
 import { lastValueFrom } from "rxjs";
 import { ConfigService } from "@nestjs/config";
@@ -8,6 +8,8 @@ import { isAxiosError } from "axios";
 
 @Injectable()
 export class IndexerService {
+  private readonly logger = new Logger(IndexerService.name);
+
   constructor(
     private readonly httpService: HttpService,
     private configService: ConfigService,
@@ -20,13 +22,19 @@ export class IndexerService {
 
     try {
       const response$ = this.httpService.get(
-        `${this.configService.get<string>("GOLD_RISH_API_URL")}/allchains/address/${address}/balances/`,
-        { headers },
+        `${this.configService.get<string>("GOLD_RUSH_API_URL")}/allchains/address/${address}/balances/`,
+        { headers, timeout: 10000 },
       );
       const response = await lastValueFrom(response$);
       // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       return getChainsAndBalances(response.data);
     } catch (error) {
+      this.logger.error(
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        `Error fetching chains data: ${error.message}`,
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        error.stack,
+      );
       if (isAxiosError(error)) {
         throw new HttpException(
           // eslint-disable-next-line @typescript-eslint/no-unsafe-argument,@typescript-eslint/no-unsafe-member-access
